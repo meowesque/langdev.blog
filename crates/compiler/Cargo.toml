@@ -1,0 +1,14 @@
+[package]
+name = "compiler"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+path = "./src/driver.rs"
+name = "compiler"
+
+[dependencies]
+log = "0.4.27"
+markdown = "1.0.0"
+thiserror = "2.0.12"
+zip = "3.0.0"

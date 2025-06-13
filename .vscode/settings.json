@@ -1,0 +1,5 @@
+{
+    "rust-analyzer.cargo.extraEnv": {
+        "DATABASE_URL": "postgres://postgres:postgres@localhost:5432/langdevblog"
+    }
+}

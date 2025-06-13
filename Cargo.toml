@@ -1,0 +1,3 @@
+[workspace]
+members = ["./crates/*", "crates/compiler"]
+resolver = "2"
