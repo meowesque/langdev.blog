@@ -2,10 +2,10 @@ use mail_builder::{MessageBuilder, mime::MimePart};
 
 use crate::env;
 
-pub fn totp() -> MessageBuilder<'static> {
+pub fn totp(to: String, code: String) -> MessageBuilder<'static> {
   MessageBuilder::new()
-    .from(("bob", "bob@g.com"))
-    .to(("bob2", "bob@k.com"))
+    .from(("langdev.blog Verification", "noreply@langdev.blog"))
+    .to((to.clone(), to))
     .subject("Time-Based One-Time Passcode")
-    .text_body(format!("{}/login/totp?={}", env::get().host, "meow"))
+    .text_body(format!("{}/login/totp?={}", env::get().host, code))
 }

@@ -4,7 +4,7 @@ use tokio::sync::RwLock;
 use crate::db::model::UserId;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone)]
-pub struct TotpCode(String);
+pub struct TotpCode(pub String);
 
 impl TotpCode {
   pub fn new() -> Self {
@@ -33,5 +33,9 @@ impl TotpService {
       .insert(code.clone(), TotpSession { user_id });
 
     code
+  }
+
+  pub async fn validate(&self, code: TotpCode) -> Option<TotpSession> {
+    self.map.write().await.remove(&code)
   }
 }

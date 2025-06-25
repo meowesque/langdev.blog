@@ -1,15 +1,15 @@
-use mail_builder::{MessageBuilder, mime::MimePart};
-
+use super::prelude::*;
 use crate::{
   csrf::{CsrfService, CsrfToken},
   db::{Db, model::User},
   email::{self, EmailService},
+  totp::TotpService,
 };
-
-use super::prelude::*;
+use mail_builder::{MessageBuilder, mime::MimePart};
+use rocket::response::content::RawHtml;
 
 #[derive(Debug, FromForm)]
-struct LoginForm {
+pub struct LoginForm {
   csrf: CsrfToken,
   // TODO(meowesque): Use `email_address::EmailAddress`?
   email: String,
@@ -20,26 +20,32 @@ pub async fn post(
   db: &State<Db>,
   csrf: &State<CsrfService>,
   email: &State<EmailService>,
+  totp: &State<TotpService>,
   form: Form<LoginForm>,
-) -> Result<
-  rocket::response::status::Accepted<String>,
-  rocket::response::status::Unauthorized<String>,
-> {
+) -> Result<rocket::response::status::Accepted<Markup>, rocket::response::status::Unauthorized<()>> {
   // TODO(meowesque): Validate CSRF
 
   let Some(user) = User::get_by_email(&db, &form.email)
     .await
-    .map_err(|_| // TODO: This is unweildy
-    rocket::response::status::Unauthorized("Unauthorized".to_owned()))?
+    .map_err(|_| rocket::response::status::Unauthorized(()))?
   else {
-    return Err(rocket::response::status::Unauthorized(
-      "Not found".to_owned(),
-    ));
+    return Err(rocket::response::status::Unauthorized(()));
   };
 
-  email.send(email::template::totp()).await.expect("uh");
+  let code = totp.create(user.id).await;
 
-  Ok(todo!())
+  // TODO(meowesque): Remove these needless allocations?
+  email
+    .send(email::template::totp(user.email.clone(), code.0.clone()))
+    .await
+    .map_err(|e| {
+      ::log::warn!("{:?}", e);
+      rocket::response::status::Unauthorized(())
+    })?;
+
+  Ok(rocket::response::status::Accepted(basic::template(html! {
+    span { "Nice job!" }
+  })))
 }
 
 #[get("/login")]

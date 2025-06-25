@@ -1,5 +1,7 @@
 use tokio_rustls::rustls::crypto::aws_lc_rs;
 
+use crate::totp::TotpService;
+
 mod auth;
 mod csrf;
 mod db;
@@ -36,6 +38,12 @@ async fn main() -> Result<(), error::Error> {
         .await
         .expect("to start EmailService"),
     )
+    .manage(
+      db::Db::new(&env::get().postgres_connstr)
+        .await
+        .expect("to start Db"),
+    )
+    .manage(TotpService::default())
     .launch()
     .await?;
 
