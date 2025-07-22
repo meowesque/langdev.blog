@@ -1,4 +1,5 @@
 use std::{collections::HashMap, sync::Arc};
+use rocket::{request::{FromParam, FromRequest}, FromForm, FromFormField};
 use tokio::sync::RwLock;
 
 use crate::db::model::UserId;
@@ -14,7 +15,7 @@ impl TotpCode {
 
 #[derive(Debug)]
 pub struct TotpSession {
-  user_id: UserId,
+  pub user_id: UserId,
 }
 
 #[derive(Clone, Debug, Default)]

@@ -3,10 +3,17 @@ use crate::{
   csrf::{CsrfService, CsrfToken},
   db::{Db, model::User},
   email::{self, EmailService},
-  totp::TotpService,
+  totp::{TotpCode, TotpService},
 };
 use mail_builder::{MessageBuilder, mime::MimePart};
-use rocket::response::content::RawHtml;
+use rocket::{
+  http::{Cookie, CookieJar},
+  response::{
+    Flash, Redirect,
+    content::RawHtml,
+    status::{Accepted, Unauthorized},
+  },
+};
 
 #[derive(Debug, FromForm)]
 pub struct LoginForm {
@@ -22,12 +29,16 @@ pub async fn post(
   email: &State<EmailService>,
   totp: &State<TotpService>,
   form: Form<LoginForm>,
-) -> Result<rocket::response::status::Accepted<Markup>, rocket::response::status::Unauthorized<()>> {
-  // TODO(meowesque): Validate CSRF
+) -> Result<rocket::response::status::Accepted<Markup>, rocket::response::status::Unauthorized<()>>
+{
+  if !csrf.validate(&form.csrf).await {
+    return Err(rocket::response::status::Unauthorized(()));
+  }
 
-  let Some(user) = User::get_by_email(&db, &form.email)
-    .await
-    .map_err(|_| rocket::response::status::Unauthorized(()))?
+  let Some(user) = User::get_by_email(&db, &form.email).await.map_err(|e| {
+    ::log::warn!("Failed to retrieve user by email: {:?}", e);
+    rocket::response::status::Unauthorized(())
+  })?
   else {
     return Err(rocket::response::status::Unauthorized(()));
   };
@@ -39,7 +50,7 @@ pub async fn post(
     .send(email::template::totp(user.email.clone(), code.0.clone()))
     .await
     .map_err(|e| {
-      ::log::warn!("{:?}", e);
+      ::log::warn!("Failed to send email: {:?}", e);
       rocket::response::status::Unauthorized(())
     })?;
 
@@ -75,4 +86,38 @@ pub async fn get(csrf: &State<CsrfService>) -> Markup {
       }
     }
   })
+}
+
+#[get("/login/totp?<code>")]
+pub async fn totp(
+  cookies: &CookieJar<'_>,
+  db: &State<Db>,
+  totp: &State<TotpService>,
+  code: String,
+) -> Result<Accepted<Markup>, Flash<Redirect>> {
+  let code = TotpCode(code);
+
+  let Some(session) = totp.validate(code).await else {
+    return Err(Flash::error(Redirect::to("/"), "Looks like your code is invalid."));
+  };
+
+  let Some(user) = User::get_by_id(&db, session.user_id).await.map_err(|e| {
+    ::log::warn!("Failed to retrieve user by id: {:?}", e);
+    Flash::error(Redirect::to("/"), "Unauthorized!")
+  })?
+  else {
+    ::log::warn!("User doesn't exist: {:?}", session.user_id);
+    return Err(Flash::error(Redirect::to("/"), "Unauthorized!"));
+  };
+
+  // TODO(meowesque): Add an expiration
+  cookies.add(
+    Cookie::build(("TOKEN", "SOME_TOKEN"))
+      .secure(true)
+      .http_only(true),
+  );
+
+  Ok(rocket::response::status::Accepted(basic::template(html! {
+    "meow!"
+  })))
 }

@@ -28,7 +28,7 @@ async fn main() -> Result<(), error::Error> {
   let _rocket = rocket::build()
     .mount(
       "/",
-      rocket::routes![route::index::route, route::login::get, route::login::post],
+      rocket::routes![route::index::route, route::login::get, route::login::post, route::login::totp],
     )
     .mount("/", rocket::fs::FileServer::from("./public").rank(1))
     .mount("/", rocket::fs::FileServer::from("./static").rank(0))

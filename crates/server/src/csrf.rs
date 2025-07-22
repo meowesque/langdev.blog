@@ -44,7 +44,7 @@ impl CsrfService {
     token
   }
 
-  pub async fn validate(&self, csrf: CsrfToken) -> bool {
+  pub async fn validate(&self, csrf: &CsrfToken) -> bool {
     self.map.write().await.remove(&csrf).is_some()
   }
 }

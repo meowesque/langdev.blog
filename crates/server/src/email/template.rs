@@ -7,5 +7,5 @@ pub fn totp(to: String, code: String) -> MessageBuilder<'static> {
     .from(("langdev.blog Verification", "noreply@langdev.blog"))
     .to((to.clone(), to))
     .subject("Time-Based One-Time Passcode")
-    .text_body(format!("{}/login/totp?={}", env::get().host, code))
+    .text_body(format!("{}/login/totp?code={}", env::get().host, code))
 }

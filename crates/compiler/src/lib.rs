@@ -4,11 +4,13 @@ pub mod prelude;
 
 use options::Options;
 use prelude::*;
-use std::{default, io::Write, path::Path};
+use std::{io::Write, path::Path};
 
 pub fn compile(options: &Options, archive: impl AsRef<Path>) -> Result<()> {
   let file = std::fs::File::open(archive.as_ref())?;
   let mut archive = zip::ZipArchive::new(file)?;
+
+  let root_dir = archive.root_dir(zip::read::root_dir_common_filter)?;
 
   for i in 0..archive.len() {
     let mut file = archive.by_index(i)?;
@@ -18,7 +20,13 @@ pub fn compile(options: &Options, archive: impl AsRef<Path>) -> Result<()> {
       None => continue,
     };
 
-    let fullpath = options.output.join(subpath);
+    let fullpath = options.output.join(match root_dir {
+      Some(ref root_dir) if options.trim_rootdir => subpath
+        .strip_prefix(root_dir)
+        .map(|x| x.to_path_buf())
+        .unwrap_or(subpath),
+      _ => subpath,
+    });
 
     if let Some(parent) = fullpath.parent() {
       std::fs::create_dir_all(&parent)?;
