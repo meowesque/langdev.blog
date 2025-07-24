@@ -8,6 +8,10 @@ pub enum Error {
   MailSendError(#[from] mail_send::Error),
   #[error("sqlx error: {0}")]
   SqlxError(#[from] sqlx::Error),
+  #[error("libsql error: {0}")]
+  LibSqlError(#[from] libsql::Error),
+  #[error("content index unsupported schema version: {0}")]
+  ContentIndexUnsupportedSchemaVersion(i64),
 }
 
 impl<'r, 'o> Responder<'r, 'o> for Error

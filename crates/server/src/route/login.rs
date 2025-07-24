@@ -1,9 +1,6 @@
 use super::prelude::*;
 use crate::{
-  csrf::{CsrfService, CsrfToken},
-  db::{Db, model::User},
-  email::{self, EmailService},
-  totp::{TotpCode, TotpService},
+  auth::token::AuthService, csrf::{CsrfService, CsrfToken}, db::{model::User, Db}, email::{self, EmailService}, totp::{TotpCode, TotpService}
 };
 use mail_builder::{MessageBuilder, mime::MimePart};
 use rocket::{
@@ -93,6 +90,7 @@ pub async fn totp(
   cookies: &CookieJar<'_>,
   db: &State<Db>,
   totp: &State<TotpService>,
+  auth: &State<AuthService>,
   code: String,
 ) -> Result<Accepted<Markup>, Flash<Redirect>> {
   let code = TotpCode(code);
@@ -110,14 +108,16 @@ pub async fn totp(
     return Err(Flash::error(Redirect::to("/"), "Unauthorized!"));
   };
 
+  let token = auth.create(user.id);
+
   // TODO(meowesque): Add an expiration
   cookies.add(
-    Cookie::build(("TOKEN", "SOME_TOKEN"))
+    Cookie::build(("TOKEN", token.to_string()))
       .secure(true)
       .http_only(true),
   );
 
   Ok(rocket::response::status::Accepted(basic::template(html! {
-    "meow!"
+    "You're now logged in " (&user.username)
   })))
 }

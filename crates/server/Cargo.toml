@@ -22,3 +22,5 @@ sqlx = { version = "0.8.5", features = ["chrono", "postgres", "runtime-tokio"] }
 thiserror = "2.0.12"
 tokio = { version = "1.45.0", features = ["full"] }
 tokio-rustls = "0.26.2"
+compiler.workspace = true
+libsql = "0.9.18"

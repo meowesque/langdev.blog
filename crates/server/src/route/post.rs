@@ -1,0 +1,48 @@
+use super::prelude::*;
+use crate::content::index::ContentIndex;
+use mail_send::mail_auth::hickory_resolver::Name;
+use rocket::{
+  fs::NamedFile,
+  http::uri::Path,
+  response::{content::RawHtml, status::NotFound},
+};
+use std::path::PathBuf;
+
+#[get("/<author>/<slug>")]
+pub async fn get(
+  index: &State<ContentIndex>,
+  author: AuthorSlug<'_>,
+  slug: &str,
+) -> Result<NamedFile, NotFound<&'static str>> {
+  let mut filepath = index
+    .trx(async |t| t.get_post_filepath(author.0, slug).await)
+    .await
+    .map_err(|_| NotFound("Post not found"))?
+    .ok_or_else(|| NotFound("Post not found"))?;
+
+  filepath.push("index.html");
+
+  NamedFile::open(filepath)
+    .await
+    .map_err(|_| NotFound("Post not found"))
+}
+
+#[get("/<author>/<slug>/<file..>")]
+pub async fn get_raw(
+  index: &State<ContentIndex>,
+  author: AuthorSlug<'_>,
+  slug: &str,
+  file: PathBuf,
+) -> Result<NamedFile, NotFound<&'static str>> {
+  let mut filepath = index
+    .trx(async |t| t.get_post_filepath(author.0, &slug).await)
+    .await
+    .map_err(|_| NotFound("Post not found"))?
+    .ok_or_else(|| NotFound("Post not found"))?;
+
+  filepath.push(file);
+
+  NamedFile::open(filepath)
+    .await
+    .map_err(|_| NotFound("Post not found"))
+}

@@ -1,4 +1,4 @@
-use std::sync::OnceLock;
+use std::{path::PathBuf, sync::OnceLock};
 
 pub struct Env {
   pub host: String,
@@ -8,6 +8,7 @@ pub struct Env {
   pub smtp_user: String,
   pub smtp_pass: String,
   pub postgres_connstr: String,
+  pub content_index_db_path: PathBuf,
 }
 
 pub fn get() -> &'static Env {
@@ -24,5 +25,8 @@ pub fn get() -> &'static Env {
     smtp_user: std::env::var("SMTP_USER").expect("SMTP_USER must be present"),
     smtp_pass: std::env::var("SMTP_PASS").expect("SMTP_PASS must be present"),
     postgres_connstr: std::env::var("POSTGRES_CONNSTR").expect("POSTGRES_CONNSTR must be present"),
+    content_index_db_path: std::env::var("CONTENT_INDEX_DB_PATH")
+      .expect("CONTENT_INDEX_DB_PATH must be present")
+      .into(),
   })
 }
