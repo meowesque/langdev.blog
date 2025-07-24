@@ -9,6 +9,8 @@ pub struct Env {
   pub smtp_pass: String,
   pub postgres_connstr: String,
   pub content_index_db_path: PathBuf,
+  pub content_index_dir: PathBuf,
+  pub content_index_temp_dir: PathBuf,
 }
 
 pub fn get() -> &'static Env {
@@ -27,6 +29,12 @@ pub fn get() -> &'static Env {
     postgres_connstr: std::env::var("POSTGRES_CONNSTR").expect("POSTGRES_CONNSTR must be present"),
     content_index_db_path: std::env::var("CONTENT_INDEX_DB_PATH")
       .expect("CONTENT_INDEX_DB_PATH must be present")
+      .into(),
+    content_index_dir: std::env::var("CONTENT_INDEX_DIR")
+      .expect("CONTENT_INDEX_DIR must be present")
+      .into(),
+    content_index_temp_dir: std::env::var("CONTENT_INDEX_TEMP_DIR")
+      .expect("CONTENT_INDEX_TEMP_DIR must be present")
       .into(),
   })
 }

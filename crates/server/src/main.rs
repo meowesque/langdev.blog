@@ -34,7 +34,8 @@ async fn main() -> Result<(), error::Error> {
         route::login::post,
         route::login::totp,
         route::post::get,
-        route::post::get_raw
+        route::post::get_raw,
+        route::upload::post,
       ],
     )
     .mount("/", rocket::fs::FileServer::from("./public").rank(1))

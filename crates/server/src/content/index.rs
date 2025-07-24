@@ -9,10 +9,10 @@ const SCHEMA_SQL: &str = include_str!("sql/schema.sql");
 
 #[derive(Debug)]
 pub struct PostMetadata<'a> {
-  author_id: UserId,
-  author_username: Cow<'a, str>,
-  slug: Cow<'a, str>,
-  filepath: Cow<'a, Path>,
+  pub author_id: UserId,
+  pub author_username: Cow<'a, str>,
+  pub slug: Cow<'a, str>,
+  pub filepath: Cow<'a, Path>,
 }
 
 #[derive(Clone)]
@@ -116,7 +116,7 @@ impl Trx {
             .expect("PathBuf should be valid UTF-8"),
         ),
       )
-      .await? ;
+      .await?;
 
     Ok(())
   }

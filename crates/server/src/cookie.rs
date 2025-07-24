@@ -1,13 +1,13 @@
-use base64::{prelude::BASE64_STANDARD, Engine};
+use base64::{Engine, prelude::BASE64_STANDARD};
 
 use crate::auth::token::Token;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CookieDeserializationError {
-    #[error("Failed to decode cookie value")]
-    Base64Decode(#[from] base64::DecodeError),
-    #[error("Failed to deserialize cookie value")]
-    JsonDeserialize(#[from] serde_json::Error),
+  #[error("Failed to decode cookie value")]
+  Base64Decode(#[from] base64::DecodeError),
+  #[error("Failed to deserialize cookie value")]
+  JsonDeserialize(#[from] serde_json::Error),
 }
 
 pub struct TokenCookie(pub Token);

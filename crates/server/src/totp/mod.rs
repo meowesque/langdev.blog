@@ -1,5 +1,8 @@
+use rocket::{
+  FromForm, FromFormField,
+  request::{FromParam, FromRequest},
+};
 use std::{collections::HashMap, sync::Arc};
-use rocket::{request::{FromParam, FromRequest}, FromForm, FromFormField};
 use tokio::sync::RwLock;
 
 use crate::db::model::UserId;

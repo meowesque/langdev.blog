@@ -1,6 +1,10 @@
 use super::prelude::*;
 use crate::{
-  auth::token::AuthService, csrf::{CsrfService, CsrfToken}, db::{model::User, Db}, email::{self, EmailService}, totp::{TotpCode, TotpService}
+  auth::token::AuthService,
+  csrf::{CsrfService, CsrfToken},
+  db::{Db, model::User},
+  email::{self, EmailService},
+  totp::{TotpCode, TotpService},
 };
 use mail_builder::{MessageBuilder, mime::MimePart};
 use rocket::{
@@ -96,7 +100,10 @@ pub async fn totp(
   let code = TotpCode(code);
 
   let Some(session) = totp.validate(code).await else {
-    return Err(Flash::error(Redirect::to("/"), "Looks like your code is invalid."));
+    return Err(Flash::error(
+      Redirect::to("/"),
+      "Looks like your code is invalid.",
+    ));
   };
 
   let Some(user) = User::get_by_id(&db, session.user_id).await.map_err(|e| {
