@@ -20,14 +20,14 @@ pub async fn get(
     .map_err(|_| NotFound("Post not found"))?
     .ok_or_else(|| NotFound("Post not found"))?;
 
-  filepath.push("index.html");
+  filepath.push(format!("{}.html", slug));
 
   NamedFile::open(filepath)
     .await
     .map_err(|_| NotFound("Post not found"))
 }
 
-#[get("/<author>/<slug>/<file..>")]
+#[get("/<author>/<slug>/<file..>", rank = 2)]
 pub async fn get_raw(
   index: &State<ContentIndex>,
   author: AuthorSlug<'_>,
@@ -37,7 +37,10 @@ pub async fn get_raw(
   let mut filepath = index
     .trx(async |t| t.get_post_filepath(author.0, &slug).await)
     .await
-    .map_err(|_| NotFound("Post not found"))?
+    .map_err(|e| {
+      ::log::info!("{:?}", e);
+      NotFound("Post not found")
+    })?
     .ok_or_else(|| NotFound("Post not found"))?;
 
   filepath.push(file);

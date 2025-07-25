@@ -9,4 +9,4 @@ CREATE TABLE post_metadata (
 );
 
 CREATE INDEX ix_post_metadata_author_username ON post_metadata (author_username);
-CREATE INDEX ix_post_metadata_url_safe_title ON post_metadata (url_safe_title);
+CREATE INDEX ix_post_metadata_slug ON post_metadata (slug);

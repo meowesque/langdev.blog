@@ -104,7 +104,7 @@ impl Trx {
     self
       .0
       .query(
-        "INSERT author_id, author_username, slug, filepath VALUES (?, ?, ?, ?) INTO post_metadata",
+        "INSERT INTO post_metadata (author_id, author_username, slug, filepath) VALUES (?, ?, ?, ?)",
         (
           post_metadata.author_id.0,
           post_metadata.author_username.as_ref(),

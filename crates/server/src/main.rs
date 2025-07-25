@@ -36,11 +36,13 @@ async fn main() -> Result<(), error::Error> {
         route::post::get,
         route::post::get_raw,
         route::upload::post,
+        route::upload::get,
       ],
     )
     .mount("/", rocket::fs::FileServer::from("./public").rank(1))
     .mount("/", rocket::fs::FileServer::from("./static").rank(0))
     .manage(csrf::CsrfService::default())
+    .manage(auth::AuthService::default())
     .manage(
       email::EmailService::from_env()
         .await
