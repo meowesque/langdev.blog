@@ -1,10 +1,8 @@
 use super::prelude::*;
 use crate::content::index::ContentIndex;
-use mail_send::mail_auth::hickory_resolver::Name;
 use rocket::{
   fs::NamedFile,
-  http::uri::Path,
-  response::{content::RawHtml, status::NotFound},
+  response::status::NotFound,
 };
 use std::path::PathBuf;
 
