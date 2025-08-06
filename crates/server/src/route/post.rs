@@ -1,9 +1,6 @@
 use super::prelude::*;
 use crate::content::index::ContentIndex;
-use rocket::{
-  fs::NamedFile,
-  response::status::NotFound,
-};
+use rocket::{fs::NamedFile, response::status::NotFound};
 use std::path::PathBuf;
 
 #[get("/<author>/<slug>")]

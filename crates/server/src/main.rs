@@ -1,5 +1,3 @@
-use crate::totp::TotpService;
-
 mod auth;
 mod content;
 mod cookie;
@@ -23,22 +21,10 @@ async fn main() -> Result<(), error::Error> {
 
   tokio_rustls::rustls::crypto::aws_lc_rs::default_provider()
     .install_default()
-    .expect("to install aws_lc_rs crypto provider");
+    .expect("failed to install aws_lc_rs crypto provider");
 
-  let _rocket = rocket::build()
-    .mount(
-      "/",
-      rocket::routes![
-        route::index::route,
-        route::login::get,
-        route::login::post,
-        route::login::totp,
-        route::post::get,
-        route::post::get_raw,
-        route::upload::post,
-        route::upload::get,
-      ],
-    )
+  let _ = rocket::build()
+    .mount("/", route::routes())
     .mount("/", rocket::fs::FileServer::from("./public").rank(1))
     .mount("/", rocket::fs::FileServer::from("./static").rank(0))
     .manage(csrf::CsrfService::default())
@@ -46,19 +32,19 @@ async fn main() -> Result<(), error::Error> {
     .manage(
       email::EmailService::from_env()
         .await
-        .expect("to start EmailService"),
+        .expect("failed to start EmailService"),
     )
     .manage(
       db::Db::new(&env::get().postgres_connstr)
         .await
-        .expect("to start Db"),
+        .expect("failed to start Db"),
     )
     .manage(
       content::index::ContentIndex::new(&env::get().content_index_db_path)
         .await
-        .expect("to start content index"),
+        .expect("failed to start content index"),
     )
-    .manage(TotpService::default())
+    .manage(totp::TotpService::default())
     .launch()
     .await?;
 

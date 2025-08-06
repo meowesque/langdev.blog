@@ -126,7 +126,10 @@ impl Trx {
   pub async fn get_all_post_metadata(&self) -> Result<Vec<PostMetadata<'static>>> {
     let mut rows = self
       .0
-      .query("SELECT author_id, author_username, slug, filepath FROM post_metadata", ())
+      .query(
+        "SELECT author_id, author_username, slug, filepath FROM post_metadata",
+        (),
+      )
       .await?;
 
     let mut posts = Vec::new();
