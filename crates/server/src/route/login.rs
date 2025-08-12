@@ -1,6 +1,6 @@
 use super::prelude::*;
 use crate::{
-  auth::token::AuthService,
+  auth::AuthService,
   csrf::{CsrfService, CsrfToken},
   db::{Db, model::User},
   email::{self, EmailService},

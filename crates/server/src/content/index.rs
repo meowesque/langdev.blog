@@ -1,3 +1,5 @@
+// TODO(meowesque): Move retrieval to the datatypes themselves.
+
 use crate::{db::model::UserId, prelude::*};
 use std::{
   borrow::Cow,
@@ -104,7 +106,7 @@ impl Trx {
     self
       .0
       .query(
-        "INSERT author_id, author_username, slug, filepath VALUES (?, ?, ?, ?) INTO post_metadata",
+        "INSERT INTO post_metadata (author_id, author_username, slug, filepath) VALUES (?, ?, ?, ?)",
         (
           post_metadata.author_id.0,
           post_metadata.author_username.as_ref(),
@@ -119,5 +121,28 @@ impl Trx {
       .await?;
 
     Ok(())
+  }
+
+  pub async fn get_all_post_metadata(&self) -> Result<Vec<PostMetadata<'static>>> {
+    let mut rows = self
+      .0
+      .query(
+        "SELECT author_id, author_username, slug, filepath FROM post_metadata",
+        (),
+      )
+      .await?;
+
+    let mut posts = Vec::new();
+
+    while let Some(row) = rows.next().await? {
+      posts.push(PostMetadata {
+        author_id: UserId(row.get(0)?),
+        author_username: Cow::Owned(row.get(1)?),
+        slug: Cow::Owned(row.get(2)?),
+        filepath: Cow::Owned(PathBuf::from(row.get::<String>(3)?)),
+      });
+    }
+
+    Ok(posts)
   }
 }

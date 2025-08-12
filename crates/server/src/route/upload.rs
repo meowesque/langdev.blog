@@ -2,13 +2,13 @@ use std::str::FromStr;
 
 use super::prelude::*;
 use crate::{
-  auth::token::{AuthService, Token},
+  auth::{AuthService, Token},
   content::index::{ContentIndex, PostMetadata},
   cookie::TokenCookie,
   csrf::{CsrfService, CsrfToken},
   db::{Db, model::User},
   email::{self, EmailService},
-  env,
+  env, template,
   totp::{TotpCode, TotpService},
 };
 use mail_builder::{MessageBuilder, mime::MimePart};
@@ -23,10 +23,21 @@ use rocket::{
   },
 };
 
+#[get("/upload")]
+pub async fn get() -> Markup {
+  basic::template(html! {
+      h1 { "Upload" }
+      form action=(format!("http://localhost:8000/upload")) method="post" enctype="multipart/form-data" {
+        input type="file" name = "file";
+        button type= "submit" { "Upload" }
+      }
+  })
+}
+
 #[derive(FromForm)]
 struct FormData<'a> {
   // TODO(meowesque): https://docs.rs/rocket/latest/rocket/config/index.html
-  archive: TempFile<'a>,
+  file: TempFile<'a>,
 }
 
 #[post("/upload", data = "<form>")]
@@ -71,7 +82,7 @@ pub async fn post(
   };
 
   form
-    .archive
+    .file
     .persist_to(&archive_path)
     .await
     .map_err(|_| BadRequest("Failed to persist archive file".to_owned()))?;
@@ -86,21 +97,22 @@ pub async fn post(
   .map_err(|_| BadRequest("Failed to compile archive".to_owned()))?;
 
   content_index
-    .trx(async |t| t.insert_post_metadata(&PostMetadata {
-      author_id: user.id,
-      author_username: (&user.username).into(),
-      slug: (&meta.slug).into(),
-      filepath: (&output_dir).into()
-    }).await)
+    .trx(async |t| {
+      t.insert_post_metadata(&PostMetadata {
+        author_id: user.id,
+        author_username: (&user.username).into(),
+        slug: (&meta.slug).into(),
+        filepath: (&output_dir).into(),
+      })
+      .await
+    })
     .await
-    .map_err(|_| BadRequest("Oops".into()))?;
+    .map_err(|e| {
+      ::log::info!("{:?}", e);
+      BadRequest("Oops".into())
+    })?;
 
-  let url = format!(
-    "{}/~{}/{}",
-    env::get().host,
-    user.username,
-    meta.slug
-  );
+  let url = format!("{}/~{}/{}", env::get().host, user.username, meta.slug);
 
   Ok(Created::new(url).body("Uploaded successfully!".to_owned()))
 }

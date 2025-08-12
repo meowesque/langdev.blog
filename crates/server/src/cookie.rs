@@ -1,6 +1,6 @@
 use base64::{Engine, prelude::BASE64_STANDARD};
 
-use crate::auth::token::Token;
+use crate::auth::Token;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CookieDeserializationError {

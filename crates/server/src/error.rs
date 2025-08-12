@@ -18,7 +18,7 @@ impl<'r, 'o> Responder<'r, 'o> for Error
 where
   'o: 'r,
 {
-  fn respond_to(self, request: &'r rocket::Request<'_>) -> rocket::response::Result<'o> {
+  fn respond_to(self, _: &'r rocket::Request<'_>) -> rocket::response::Result<'o> {
     rocket::response::Result::Ok(
       Response::build()
         .status(Status::InternalServerError)
