@@ -52,7 +52,8 @@ pub fn compile(options: &Options, archive: impl AsRef<Path>) -> Result<Meta> {
                 parse: markdown::ParseOptions::gfm(),
                 compile: markdown::CompileOptions::gfm(),
               },
-            ).map_err(Error::MarkdownError)?;
+            )
+            .map_err(Error::MarkdownError)?;
 
             outfile.write_all(html.as_bytes())?;
           }
