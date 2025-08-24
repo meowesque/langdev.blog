@@ -39,13 +39,13 @@
         devShell = pkgs.mkShell {
           nativeBuildInputs = with pkgs;
             [
-              nixpkgs-fmt
+              nixfmt
               cmake
               rustc
+              rustfmt
               cargo
               clippy
               rust-analyzer 
-              nixfmt
             ] ++ buildInputs ++ nativeBuildInputs;
         };
       }
