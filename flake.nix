@@ -3,20 +3,33 @@
     flake-utils.url = "github:numtide/flake-utils";
     naersk.url = "github:nix-community/naersk";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    concatinator.url = "github:meowesque/concatinator";
   };
 
-  outputs = { self, flake-utils, naersk, nixpkgs }:
+  outputs = { self, flake-utils, naersk, nixpkgs, rust-overlay, concatinator }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = (import nixpkgs) {
           inherit system;
+          overlays = [
+            (import rust-overlay)
+          ];
         };
 
         naersk' = pkgs.callPackage naersk { };
         
         buildInputs = with pkgs; [ ];
 
-        nativeBuildInputs = with pkgs; [ ];
+        nativeBuildInputs = with pkgs; [ 
+          (pkgs.rust-bin.stable.latest.default.override {
+            extensions = [
+              "rust-src"
+              "cargo"
+              "rustc"
+            ];
+          })
+        ];
       in
       rec {
         defaultPackage = packages.server;
@@ -37,6 +50,14 @@
           };
 
         devShell = pkgs.mkShell {
+          DATABASE_URL="postgres://postgres:postgres@localhost:5432/langdevblog";
+
+          RUST_SRC_PATH = "${
+            pkgs.rust-bin.stable.latest.default.override {
+              extensions = [ "rust-src" ];
+            }
+          }/lib/rustlib/src/rust/library";
+
           nativeBuildInputs = with pkgs;
             [
               nixfmt
@@ -46,7 +67,10 @@
               cargo
               clippy
               rust-analyzer 
-            ] ++ buildInputs ++ nativeBuildInputs;
+              docker
+              sqlx-cli
+            ] ++ buildInputs ++ nativeBuildInputs
+            ++ [ concatinator.packages.${system}.concatinator ];
         };
       }
     );
