@@ -8,6 +8,10 @@ pub enum Error {
   TomlDeserializeError(#[from] toml::de::Error),
   #[error("Markdown error: {0}")]
   MarkdownError(markdown::message::Message),
+  #[error("Forbidden file: {0}")]
+  ForbiddenFile(&'static str),
+  #[error("Missing post markdown file")]
+  MissingPostFile,
   #[error("Missing meta file")]
   MissingMetaFile,
 }
