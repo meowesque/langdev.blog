@@ -1,5 +1,7 @@
 {
     "rust-analyzer.cargo.extraEnv": {
         "DATABASE_URL": "postgres://postgres:postgres@localhost:5432/langdevblog"
-    }
+    },
+    "nixEnvSelector.useFlakes": true,
+    "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix"
 }
