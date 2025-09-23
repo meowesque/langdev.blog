@@ -7,8 +7,17 @@
     concatinator.url = "github:meowesque/concatinator";
   };
 
-  outputs = { self, flake-utils, naersk, nixpkgs, rust-overlay, concatinator }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      flake-utils,
+      naersk,
+      nixpkgs,
+      rust-overlay,
+      concatinator,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = (import nixpkgs) {
           inherit system;
@@ -18,10 +27,10 @@
         };
 
         naersk' = pkgs.callPackage naersk { };
-        
+
         buildInputs = with pkgs; [ ];
 
-        nativeBuildInputs = with pkgs; [ 
+        nativeBuildInputs = with pkgs; [
           (pkgs.rust-bin.stable.latest.default.override {
             extensions = [
               "rust-src"
@@ -33,24 +42,22 @@
       in
       rec {
         defaultPackage = packages.server;
-        packages =
-          {
-            server = naersk'.buildPackage {
-              src = ./.;
-              nativeBuildInputs = nativeBuildInputs;
-              buildInputs = buildInputs;
-            };
-            container = pkgs.dockerTools.buildImage
-              {
-                name = "server";
-                config = {
-                  entrypoint = [ "${packages.server}/bin/server" ];
-                };
-              };
+        packages = {
+          server = naersk'.buildPackage {
+            src = ./.;
+            nativeBuildInputs = nativeBuildInputs;
+            buildInputs = buildInputs;
           };
+          container = pkgs.dockerTools.buildImage {
+            name = "server";
+            config = {
+              entrypoint = [ "${packages.server}/bin/server" ];
+            };
+          };
+        };
 
         devShell = pkgs.mkShell {
-          DATABASE_URL="postgres://postgres:postgres@localhost:5432/langdevblog";
+          DATABASE_URL = "postgres://postgres:postgres@localhost:5432/langdevblog";
 
           RUST_SRC_PATH = "${
             pkgs.rust-bin.stable.latest.default.override {
@@ -58,7 +65,8 @@
             }
           }/lib/rustlib/src/rust/library";
 
-          nativeBuildInputs = with pkgs;
+          nativeBuildInputs =
+            with pkgs;
             [
               nixfmt
               cmake
@@ -66,10 +74,12 @@
               rustfmt
               cargo
               clippy
-              rust-analyzer 
+              rust-analyzer
               docker
               sqlx-cli
-            ] ++ buildInputs ++ nativeBuildInputs
+            ]
+            ++ buildInputs
+            ++ nativeBuildInputs
             ++ [ concatinator.packages.${system}.concatinator ];
         };
       }
