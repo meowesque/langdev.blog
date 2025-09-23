@@ -87,10 +87,13 @@ pub async fn post(
     .await
     .map_err(|_| BadRequest("Failed to persist archive file".to_owned()))?;
 
-  let meta = compiler::compile(
+  let details = compiler::compile(
     &compiler::options::Options {
       output: std::path::Path::new(&output_dir),
       trim_rootdir: true,
+      garnish_html: true,
+      minify_html: true,
+      minify_css: true,
     },
     &archive_path,
   )
@@ -101,7 +104,7 @@ pub async fn post(
       t.insert_post_metadata(&PostMetadata {
         author_id: user.id,
         author_username: (&user.username).into(),
-        slug: (&meta.slug).into(),
+        slug: (&details.meta.slug).into(),
         filepath: (&output_dir).into(),
       })
       .await
@@ -112,7 +115,7 @@ pub async fn post(
       BadRequest("Oops".into())
     })?;
 
-  let url = format!("{}/~{}/{}", env::get().host, user.username, meta.slug);
+  let url = format!("{}/~{}/{}", env::get().host, user.username, details.meta.slug);
 
   Ok(Created::new(url).body("Uploaded successfully!".to_owned()))
 }

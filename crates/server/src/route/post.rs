@@ -15,7 +15,7 @@ pub async fn get(
     .map_err(|_| NotFound("Post not found"))?
     .ok_or_else(|| NotFound("Post not found"))?;
 
-  filepath.push(format!("{}.html", slug));
+  filepath.push("post.html");
 
   NamedFile::open(filepath)
     .await
