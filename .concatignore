@@ -20,3 +20,4 @@ flake.nix
 .direnv
 .git
 Cargo.lock 
+.concat.out
