@@ -19,3 +19,4 @@ flake.nix
 .github
 .direnv
 .git
+Cargo.lock 
