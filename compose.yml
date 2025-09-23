@@ -7,3 +7,10 @@ services:
       POSTGRES_DB: langdevblog
     ports:
       - "5432:5432"
+
+  # For testing email sending during development
+  mailtutan:
+    image: mailtutan/mailtutan:latest
+    ports:
+      - "1080:1080"
+      - "1025:1025"
